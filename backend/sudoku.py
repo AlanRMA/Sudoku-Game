@@ -1,7 +1,4 @@
-# sudoku.py
-
 import random
-
 class SudokuBoard:
     def __init__(self, size):
         self.size = size  # Tamanho do tabuleiro (n)
