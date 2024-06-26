@@ -1,0 +1,115 @@
+/* Estilos gerais */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+h1 {
+    color: rgb(213, 41, 70);
+}
+
+.container {
+    background-color: whitesmoke;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 600px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.button-container button {
+    padding: 10px 20px;
+    font-size: 20px;
+    margin: 0 10px;
+    background-color: rgb(233, 96, 119);
+    color: whitesmoke;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button-container button:hover {
+    background-color: #0056b3;
+}
+
+#sudoku-container {
+    margin-top: 30px;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse; /* Colapsa as bordas das células da tabela */
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+td {
+    width: 2em;
+    height: 2em;
+    color: rgb(134, 0, 127);
+    text-align: center;
+    border: 2px solid rgb(249, 157, 203);
+    font-size: 1.2em;
+    position: relative; /* Para posição relativa */
+}
+
+td input {
+    width: 100%;
+    height: 100%;
+    font-size: 1.2em;
+    text-align: center;
+    border: none; /* Remove a borda do input */
+    background-color: transparent; /* Fundo transparente */
+    position: absolute; /* Posição absoluta */
+    top: 0; /* Alinha com o topo da célula */
+    left: 0; /* Alinha com a esquerda da célula */
+    z-index: 1; /* Garante que esteja acima do conteúdo da célula */
+    outline: none; /* Remove o outline padrão */
+}
+
+/* Pseudo-elementos para criar a borda simulada */
+td::before,
+td::after {
+    content: '';
+    position: absolute;
+    width: calc(100% + 4px); /* Ajusta a largura para cobrir a borda da célula */
+    height: calc(100% + 4px); /* Ajusta a altura para cobrir a borda da célula */
+    border: 2px solid transparent; /* Borda inicialmente transparente */
+    top: -2px; /* Ajusta para cobrir a borda superior da célula */
+    left: -2px; /* Ajusta para cobrir a borda esquerda da célula */
+    pointer-events: none; /* Garante que não capture eventos do mouse */
+}
+
+/* Estilo para o highlight ao focar no input */
+td input:focus::before,
+td input:focus::after {
+    border-color: rgb(213, 41, 70); /* Cor da borda ao focar */
+}
+
+.pre-filled {
+    background-color: #f0f0f0; /* Cor de fundo para células preenchidas */
+    font-weight: bold;
+}

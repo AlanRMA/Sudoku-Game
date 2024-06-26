@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Game</title>
+    <link rel="shortcut icon" type="image/x-icon" href="./circle-1.png">
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            color: rgb(213, 41, 70);
+        }
+        .container {
+            background-color: whitesmoke;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 20px;
+            margin: 0 10px;
+            background-color: rgb(233, 96, 119);
+            color: whitesmoke;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
+        #sudoku-container {
+            margin-top: 30px;
+            text-align: center;
+        }
+        table {
+            border-collapse: collapse; /* Borda do grid do Sudoku colapsada */
+            border: 2px solid #f0f0f0; /* Cor da borda do grid */
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        td {
+            width: 2em;
+            height: 2em;
+            color: rgb(134, 0, 127);
+            text-align: center;
+            border: 1px solid rgb(249, 157, 203);
+            font-size: 1.2em;
+        }
+        .sudoku-input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-size: 1.2em;
+            background-color: transparent;
+        }
+        .pre-filled {
+            background-color: #f0f0f0; /* Cor de fundo para células pré-preenchidas */
+            font-weight: bold;
+        }
+        .victory-message {
+            font-size: 1.5em;
+            color: green;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        #check-victory-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            display: none; /* Inicialmente oculto */
+        }
+        #check-victory-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Escolha o tamanho do Sudoku:</h1>
+        <div class="button-container">
+            <button id="size4">4x4</button>
+            <button id="size9">9x9</button>
+        </div>
+
+        <div id="sudoku-container">
+            <!-- Aqui será inserido o grid do Sudoku -->
+        </div>
+
+        <div id="victory-message" class="victory-message" style="display: none;">Parabéns! Você completou o Sudoku!</div>
+
+        <button id="check-victory-btn" onclick="checkVictory()">Enviar Solução</button>
+    </div>
+
+    <script>
+        let sudokuToPlay = []; // Matriz do Sudoku que o usuário vê
+        let solution = []; // Solução do Sudoku (referência para validar entrada do usuário)
+
+        // Função para fazer requisição à API e exibir o Sudoku
+        function fetchSudoku(size) {
+            fetch(`http://127.0.0.1:5000/api/game/?n=${size}`)
+                .then(response => response.json())
+                .then(data => {
+                    sudokuToPlay = data.sudoku_game;
+                    solution = data.sudoku_solution;
+                    console.log("solution: ", solution);
+                    displaySudoku(sudokuToPlay);
+                })
+                .catch(error => console.error('Erro ao buscar Sudoku:', error));
+        }
+
+        // Função para exibir o Sudoku na tela
+        function displaySudoku(sudoku) {
+            const sudokuContainer = document.getElementById('sudoku-container');
+            sudokuContainer.innerHTML = ''; // Limpa o conteúdo anterior
+
+            // Cria o grid do Sudoku na tela
+            const table = document.createElement('table');
+            for (let i = 0; i < sudoku.length; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < sudoku[i].length; j++) {
+                    const cell = document.createElement('td');
+                    if (sudoku[i][j] === 0) {
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.maxLength = 1;
+                        input.classList.add('sudoku-input');
+                        input.addEventListener('input', () => checkSolutionButtonVisibility());
+                        cell.appendChild(input);
+                    } else {
+                        cell.textContent = sudoku[i][j];
+                        cell.classList.add('pre-filled'); // Adiciona classe para células pré-preenchidas
+                    }
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+            sudokuContainer.appendChild(table);
+
+            // Mostra o botão "Enviar Solução" se todas as células estiverem preenchidas
+            checkSolutionButtonVisibility();
+        }
+
+        // Função para verificar se todas as células estão preenchidas e mostrar o botão "Enviar Solução"
+        function checkSolutionButtonVisibility() {
+            const inputs = document.querySelectorAll('.sudoku-input');
+            let allFilled = true;
+            inputs.forEach(input => {
+                if (input.value.trim() === '') {
+                    allFilled = false;
+                }
+            });
+            const checkVictoryBtn = document.getElementById('check-victory-btn');
+            if (allFilled) {
+                checkVictoryBtn.style.display = 'inline-block'; // Mostra o botão se todas as células estão preenchidas
+            } else {
+                checkVictoryBtn.style.display = 'none'; // Oculta o botão se há células não preenchidas
+            }
+        }
+
+        // Função para verificar se o jogador venceu
+        function checkVictory() {
+            let correct = true;
+            const inputs = document.querySelectorAll('.sudoku-input');
+            inputs.forEach((input, index) => {
+                const row = Math.floor(index / sudokuToPlay.length);
+                const col = index % sudokuToPlay.length;
+                if (parseInt(input.value.trim()) !== solution[row][col]) {
+                    correct = false;
+                }
+            });
+
+            if (correct) {
+                const victoryMessage = document.getElementById('victory-message');
+                victoryMessage.style.display = 'block'; // Exibe a mensagem de vitória
+                const checkVictoryBtn = document.getElementById('check-victory-btn');
+                checkVictoryBtn.style.display = 'none'; // Oculta o botão "Enviar Solução"
+            } else {
+                const shouldShowSolution = confirm('A solução está incorreta. Deseja ver a solução?');
+                if (shouldShowSolution) {
+                    alert(`Solução:\n${solution.map(row => row.join(' ')).join('\n')}`);
+                }
+            }
+        }
+
+        // Adiciona event listeners aos botões
+        document.getElementById('size4').addEventListener('click', () => fetchSudoku(4));
+        document.getElementById('size9').addEventListener('click', () => fetchSudoku(9));
+
+        // Inicializa o Sudoku ao carregar a página
+        fetchSudoku(4); // Tamanho inicial do Sudoku (pode ser ajustado)
+    </script>
+</body>
+</html>
